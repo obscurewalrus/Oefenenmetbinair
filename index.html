@@ -565,7 +565,8 @@
     async laadSpelers() {
       if (this.db) {
         const snap = await this.db.collection('spelers').limit(100).get();
-        return snap.docs.filter((d) => d.exists).map((d) => Object.assign({ id: d.id }, d.data()));
+        // Snapshots uit de database zijn bevroren; maak een diepe kopie zodat het spel ze kan bijwerken.
+        return snap.docs.filter((d) => d.exists).map((d) => Object.assign({ id: d.id }, JSON.parse(JSON.stringify(d.data()))));
       }
       try { return JSON.parse(localStorage.getItem('lampjeslab-spelers') || '[]'); } catch (e) { return []; }
     },
@@ -1140,8 +1141,6 @@
     b.addEventListener('click', () => { if (S.levelBericht) { zegBitje(S.levelBericht.tekst, S.levelBericht.stemming); S.levelBericht = null; } volgendeVraag(); });
     acties.appendChild(b); box.appendChild(acties);
     b.focus({ preventScroll: true });
-    S.pendingVolgende = b;
-    document.addEventListener('keydown', function eenmalig(e) { if (e.key === 'Enter' && document.activeElement !== b) { document.removeEventListener('keydown', eenmalig); b.click(); } else if (document.activeElement === b) { document.removeEventListener('keydown', eenmalig); } });
   }
 
   function verwerkResultaat(resultaat) {
